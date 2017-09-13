@@ -1,0 +1,2 @@
+var USB = require('usb')
+
