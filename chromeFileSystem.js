@@ -1,7 +1,7 @@
 const electron = require('electron')
-const dialog = electrong.dialog
-
-chrome.fileSystem.chooseEntry = (options, cb) => {
+const dialog = electron.dialog
+chrome.filesystem = {}
+chrome.filesystem.chooseEntry = (options, cb) => {
   dialog.showSaveDialog({
       defaultPath: options.suggestedName,
     },

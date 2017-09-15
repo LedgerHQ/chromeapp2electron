@@ -1,31 +1,26 @@
 const {BrowserWindow} = require('electron')
-const electron = require('electron')
-// Module to control application life.
-const app = electron.app
-// Module to create native browser window.
-const BrowserWindow = electron.BrowserWindow
-
 const path = require('path')
 const url = require('url')
-
-var window = {};
 
 chrome.app = {
   runtime: {
     onLaunched: {
-      addListener: () => {
-        return
+      addListener: (cb) => {
+        cb()
       }
     }
   },
   window: {
     current: () => {
       show: () => {
-        window.focus();
+        mainWindow.focus();
       }
     },
     create: (view, options, cb) => {
-      window = new BrowserWindow({
+      mainWindow = new BrowserWindow({
+        webPreferences: {
+          nodeIntegration: false
+        },
         width: options.innerBounds.width,
         height: options.innerBounds.height,
         x: options.innerBounds.left,
@@ -42,4 +37,4 @@ chrome.app = {
       }))
     }
   }
-}
+};

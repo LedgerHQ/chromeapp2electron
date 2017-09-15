@@ -36,7 +36,6 @@ function toBuffer(ab) {
   }
   return buf;
 }
-
 chrome.hid = {
   getDevices: (options, cb) => {
     var deviceCount = 0;    
@@ -89,9 +88,6 @@ chrome.hid = {
   }
 };
 
-  
-
-    
 
 
 

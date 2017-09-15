@@ -7,6 +7,4 @@ chrome.i18n = {
   getAcceptLanguages: () => {
     return ["en"]
   },
-
-
 }
