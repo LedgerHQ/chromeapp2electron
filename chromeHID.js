@@ -2,6 +2,7 @@ var HID = require('node-hid');
 var devicesTable = {};
 var matchTable = {};
 var connectionTable = {};
+
 deviceToHid = (device, id) => {
   return {
     deviceId: device.id,
@@ -16,6 +17,24 @@ deviceToHid = (device, id) => {
     reportDescriptor: null, //getinterface
 
   };
+}
+
+function toArrayBuffer(buf) {
+  var ab = new ArrayBuffer(buf.length);
+  var view = new Uint8Array(ab);
+  for (var i = 0; i < buf.length; ++i) {
+      view[i] = buf[i];
+  }
+  return ab;
+}
+
+function toBuffer(ab) {
+  var buf = new Buffer(ab.byteLength);
+  var view = new Uint8Array(ab);
+  for (var i = 0; i < buf.length; ++i) {
+      buf[i] = view[i];
+  }
+  return buf;
 }
 chrome.hid = {
   getDevices: (options, cb) => {
@@ -57,19 +76,18 @@ chrome.hid = {
   receive: (connectionId, cb) => {
     connectionTable[deviceId].on("data", (data) => {
       var reportId = 0;
-      cb(reportId, data)
+      var dataConverted = toArrayBuffer(data)
+      cb(reportId, dataConverted) //convert
     })
   },
   send: (connectionId, reportId, data, cb) => {
     // reportId is always 0 in the case of ledger wallet chrome
+    var dataConverted = toBuffer(data);
     connectionTable[deviceId].write(data) // BUG: if the first byte of a write() is 0x00, you may need to prepend an extra 0x00 due to a bug in hidapi (see issue #187)
     cb();
   }
 };
 
-  
-
-    
 
 
 
