@@ -5,17 +5,16 @@ var connectionTable = {};
 
 deviceToHid = (device, id) => {
   return {
-    deviceId: device.id,
-    vendorId: vendorId,
-    productId: productId,
-    productName: product,
-    serialNumber: serialNumber,
+    deviceId: id,
+    vendorId: device.vendorId,
+    productId: device.productId,
+    productName: device.product,
+    serialNumber: device.serialNumber,
     collections: [],
     maxInputReportSize: 256,
     maxOutputReportSize: 256,
     maxFeatureReportSize: 256,
     reportDescriptor: null, //getinterface
-
   };
 }
 
@@ -42,7 +41,7 @@ chrome.hid = {
     var devices = HID.devices();
     devicesTable = {};
     matchTable = {};
-    for(i = 0; i <= devices.length; i++) {
+    for(i = 0; i+1 <= devices.length; i++) {
       var id = {
         vendorId: devices[i].vendorId,
         productId: devices[i].productId
@@ -53,13 +52,13 @@ chrome.hid = {
           matchTable[deviceCount] = devices[i];
           devicesTable[deviceCount] = deviceToHid(devices[i], deviceCount);
         }
-      } else if (id === options) {
+      } else if (id.productId === options.productId && id.vendorId === options.vendorId) {
         deviceCount++;
         matchTable[deviceCount] = devices[i];
         devicesTable[deviceCount] = deviceToHid(devices[i], deviceCount);
       }
     }
-    cb(devicesTable.values());
+    cb(Object.values(devicesTable));
   },
   connect: (deviceId, cb) => {
     var device = new HID.HID(matchTable[deviceId].path);

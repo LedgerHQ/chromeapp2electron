@@ -3,6 +3,9 @@ const path = require('path')
 const url = require('url')
 
 chrome.app = {
+  path: (url) => {
+    return path.join(__dirname, url);
+  },
   runtime: {
     onLaunched: {
       addListener: (cb) => {
@@ -19,7 +22,8 @@ chrome.app = {
     create: (view, options, cb) => {
       mainWindow = new BrowserWindow({
         webPreferences: {
-          nodeIntegration: false
+          nodeIntegration: false,
+          preload: path.join(__dirname, 'preloader.js'),
         },
         width: options.innerBounds.width,
         height: options.innerBounds.height,

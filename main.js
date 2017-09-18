@@ -17,6 +17,8 @@ require('./chromeHID');
 require('./chromeUSB');
 require('./chromeI18n');
 require('./chromeRuntime');
+require('./chromeStorage');
+require('./chromeCommands');
 
 function createWindow () {
   // Create the browser window.

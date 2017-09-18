@@ -1,5 +1,5 @@
 const settings = require('electron-settings');
-
+chrome.storage = {}
 chrome.storage.local = {
   get: (keys, cb) => {
     var result = {}
@@ -16,6 +16,11 @@ chrome.storage.local = {
         if (keys.hasOwnProperty(property)) {
           result[property] = settings.get(property, keys[property]);
         }
+      }
+    }
+    for(var property in result) {
+      if (result.hasOwnProperty(property) && typeof(result[property]) === "undefined") {
+        delete result[property];
       }
     }
     cb(result);

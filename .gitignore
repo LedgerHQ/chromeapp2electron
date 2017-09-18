@@ -1,1 +1,12 @@
 node_modules
+_locales
+assets
+firmwares
+libs
+npm-debug.log
+package-lock.json
+public
+spec
+src
+views
+manifest.json

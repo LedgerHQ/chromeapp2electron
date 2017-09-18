@@ -14,8 +14,10 @@
     "electron-rebuild": "^1.6.0"
   },
   "dependencies": {
+    "electron-settings": "^3.1.1",
     "node-hid": "^0.5.7",
-    "node-sass": "^4.5.3"
+    "node-sass": "^4.5.3",
+    "usb": "^1.2.0"
   },
   "cmake-js": {
     "runtime": "electron",
