@@ -1,5 +1,7 @@
 global.chrome = {}
 global.mainWindow = {}
+global.manifest = require('./manifest.json');
+
 require('./src/imports')
 require('./chromeApp');
 require('./chromeFileSystem');

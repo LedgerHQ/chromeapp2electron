@@ -14,28 +14,26 @@ chrome.runtime = {
     }
     if (typeof(options) !== "boolean") {
       cb = options
-      
     }
-    return cb(undefined)
+    if (cb) {
+      cb()
+    }
+    return
   },
   onMessageExternal: {
-    addListener: (request, sender, response) => {
-      return
+    addListener: (cb) => {
     }
   },
   onMessage: {
-    addListener: (request, sender, response) => {
-      return
+    addListener: (cb) => {
     }
   },
   onLaunched: {
-    addListener: (request, sender, response) => {
-      return
+    addListener: (cb) => {
     }
   },
   onUpdateAvailable: {
-    addListener: (request, sender, response) => {
-      return
+    addListener: (cb) => {
     }
   },
   reload: () => {
@@ -43,11 +41,9 @@ chrome.runtime = {
     app.quit();
   },
   lastError: () => {
-    return
+    return 'last error default'
   },
   getManifest: () => {
-    return {
-      version: '2'
-    }
+    return manifest;
   }
 }

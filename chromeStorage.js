@@ -5,12 +5,12 @@ chrome.storage.local = {
     var result = {}
     if (typeof(keys) === "string") {
       result[keys] = settings.get(keys)
+    } else if (keys === null){
+      result = settings.getAll();
     } else if (keys.constructor === Array) {
       for(i=0; i < keys.length; i++) {
         result[keys[i]] = settings.get(keys[i]);
       }
-    } else if (keys === null){
-      result = settings.getAll();
     } else {
       for(var property in keys) {
         if (keys.hasOwnProperty(property)) {
@@ -26,9 +26,9 @@ chrome.storage.local = {
     cb(result);
   }, //TODO : special serialization cases like Date
   set: (items, cb) => {
-    for(var property in keys) {
-      if (keys.hasOwnProperty(property)) {
-        settings.set(property, keys[property]);
+    for(var property in items) {
+      if (items.hasOwnProperty(property)) {
+        settings.set(property, items[property]);
       }
     }
     if(cb) {

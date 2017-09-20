@@ -10,6 +10,7 @@ const url = require('url')
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 global.chrome = {}
+global.manifest = require('./manifest.json');
 global.mainWindow = {}
 require('./chromeApp');
 require('./chromeFileSystem');
