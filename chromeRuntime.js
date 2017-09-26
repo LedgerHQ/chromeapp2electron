@@ -40,9 +40,8 @@ chrome.runtime = {
     app.relaunch();
     app.quit();
   },
-  lastError: () => {
-    return 'last error default'
-  },
+  lastError: undefined
+  ,
   getManifest: () => {
     return manifest;
   }

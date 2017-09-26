@@ -22,7 +22,7 @@ chrome.app = {
     create: (view, options, cb) => {
       mainWindow = new BrowserWindow({
         webPreferences: {
-          nodeIntegration: false,
+          nodeIntegration: true,
           preload: path.join(__dirname, 'preloader.js'),
         },
         width: options.innerBounds.width,

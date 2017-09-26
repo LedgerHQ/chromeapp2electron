@@ -3,7 +3,7 @@ const electron = require('electron')
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
-
+global.hexToArrayBuffer = require('hex-to-array-buffer')
 const path = require('path')
 const url = require('url')
 
@@ -14,16 +14,27 @@ global.manifest = require('./manifest.json');
 global.mainWindow = {}
 require('./chromeApp');
 require('./chromeFileSystem');
-require('./chromeHID');
 require('./chromeUSB');
+
 require('./chromeI18n');
 require('./chromeRuntime');
 require('./chromeStorage');
 require('./chromeCommands');
 
 function createWindow () {
+  
   // Create the browser window.
-  require('./src/background')
+  require('./childManagement');
+  
+  chrome.app.window.create('views/layout.html', {
+    id: "main_window",
+    innerBounds: {
+      minWidth: 1000,
+      minHeight: 640
+    }
+  }, function(createdWindow) {
+    console.log("created", createdWindow);
+  });
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
   // Emitted when the window is closed.
@@ -31,6 +42,7 @@ function createWindow () {
     // Dereference the window object, usually you would store windows
     // in an array if your app supports multi windows, this is the time
     // when you should delete the corresponding element.
+    hid.kill()
     mainWindow = null
   })
 }

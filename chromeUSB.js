@@ -1,4 +1,5 @@
-var usb = require('usb')
+//var usb = require('usb')
+
 
 var devicesTable = {};
 var matchTable = {};
@@ -20,20 +21,19 @@ chrome.usb = {
   getDevices: (options, cb) => {
     cb([]);
   },
-  findDevices: () => {
-
+  findDevices: (options, cb) => {
+    cb([]);
   },
-  listInterfaces: () => {
-
+  listInterfaces: (handle, cb) => {
+    cb([]);
   },
-  claimInterface: () => {
-
+  claimInterface: (handle, interfacenb, cb) => {
+    cb();
   },
-  releaseInterface: () => {
-
+  releaseInterface: (handle, interfacenb, cb) => {
+    cb();
   },
-  bulkTransfer: () => {
-    
+  bulkTransfer: (h, ti, cb) => {
   }
 };
   
