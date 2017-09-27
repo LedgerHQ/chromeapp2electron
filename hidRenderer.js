@@ -1,5 +1,5 @@
 cbTable = {}
-
+id = 0;
 /*toArrayBuffer = (json) => {
   var str = JSON.stringify(json, null, 0);
 	var ret = new Uint8Array(str.length);
@@ -10,7 +10,7 @@ cbTable = {}
 }*/
 
 toArrayBuffer = (json) => {
-  console.log("read from device", json)
+  //console.log("read from device", json)
   return hexToArrayBuffer(json);
 }
 
@@ -29,7 +29,7 @@ toJson = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {  
-    console.log("hid reply", arg);
+    //console.log("hid reply", arg.args, arg.id);
     if(arg.buffersBack.length > 0 ) {
       for (var l=0; l<arg.buffersBack.length; ++l) {
         arg.args[arg.buffersBack[l]] = toArrayBuffer(arg.args[arg.buffersBack[l]]);
@@ -39,9 +39,7 @@ ipcRenderer.on('hid-reply', (event, arg) => {
     delete cbTable[arg.id];
 });
 
-makeCall = (call, args, cb) => {  
-  console.log("makecall", call, args, cb)
-  let id = new Uint32Array(1) 
+makeCall = (call, args, cb) => {   
   var buffers = [];
   for (var i=0; i<args.length; ++i) {
     if( args[i] instanceof ArrayBuffer) {
@@ -49,21 +47,22 @@ makeCall = (call, args, cb) => {
     }
   }
   if (cb) {
-    window.crypto.getRandomValues(id)    
-    cbTable[id[0]] = args[args.length -1]
+    ++id;
+    cbTable[id] = args[args.length -1]
 
   } else {
-    id[0] = undefined
+    id = undefined
   }
   if (buffers.length > 0) {
     for(var j=0; j<buffers.length; ++j) {
       args[buffers[j]] = toJson(args[buffers[j]]);
     }
   }
+  //console.log("makecall", call, args, id)
   ipcRenderer.send('hid', {
     call: call,
     args: args,
-    id: id[0],
+    id: id,
     buffers: buffers
   })
 }

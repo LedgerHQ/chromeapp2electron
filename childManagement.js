@@ -13,17 +13,16 @@ hid.on('disconnect', (message) => {
 hid.on('exit', (code, signal) => {
   console.log('child process exited with ' +
   `code ${code} and signal ${signal}`);
-  id = fork('./hidChild');
 })
 //Communication with the renderer
 // Listen for async message from renderer process
 ipcMain.on('hid', (event, arg) => {      
   // Transfer to child
-  console.log("message received from renderer", arg)
+  //console.log("message received from renderer", arg.id, arg.call)
   hid.send(arg)
 });
 
 hid.on('message', message => {
-  console.log('message from child hid:', message);
+  //console.log('message from child hid:', message.id);
   mainWindow.webContents.send('hid-reply', message);
 });
