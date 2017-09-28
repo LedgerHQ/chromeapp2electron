@@ -19,7 +19,11 @@ hid.on('exit', (code, signal) => {
 ipcMain.on('hid', (event, arg) => {      
   // Transfer to child
   //console.log("message received from renderer", arg.id, arg.call)
-  hid.send(arg)
+  try {
+    hid.send(arg)
+  } catch(e) {
+    console.log("channel closed",arg.id)
+  }
 });
 
 hid.on('message', message => {

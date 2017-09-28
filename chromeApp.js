@@ -3,9 +3,6 @@ const path = require('path')
 const url = require('url')
 
 chrome.app = {
-  path: (url) => {
-    return path.join(__dirname, url);
-  },
   runtime: {
     onLaunched: {
       addListener: (cb) => {

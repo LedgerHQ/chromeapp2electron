@@ -1,14 +1,14 @@
 {
-  "name": "electron-quick-start",
+  "name": "ledger-wrapper",
   "version": "1.0.0",
-  "description": "A minimal Electron application",
+  "description": "Wrapper for Ledger chrome apps",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
     "postinstall": "electron-rebuild --force"
   },
-  "author": "GitHub",
-  "license": "CC0-1.0",
+  "author": "alix mougel",
+  "license": "",
   "devDependencies": {
     "electron": "^1.7.6",
     "electron-rebuild": "^1.6.0"
@@ -26,3 +26,4 @@
     "arch": "x64"
   }
 }
+

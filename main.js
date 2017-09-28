@@ -3,9 +3,6 @@ const electron = require('electron')
 const app = electron.app
 // Module to create native browser window.
 const BrowserWindow = electron.BrowserWindow
-global.hexToArrayBuffer = require('hex-to-array-buffer')
-const path = require('path')
-const url = require('url')
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
@@ -13,13 +10,6 @@ global.chrome = {}
 global.manifest = require('./manifest.json');
 global.mainWindow = {}
 require('./chromeApp');
-require('./chromeFileSystem');
-require('./chromeUSB');
-
-require('./chromeI18n');
-require('./chromeRuntime');
-require('./chromeStorage');
-require('./chromeCommands');
 
 function createWindow () {
   
