@@ -3,6 +3,55 @@ var devicesTable = {};
 var matchTable = {};
 var connectionTable = {};
 var matchTable2 = {};
+const manifest = require('./chromeApp/manifest.json')
+var filters = [];
+var disconnectCb = undefined
+
+detectFilters = () => {
+  for (i=0; i < manifest.permissions.length; ++i) {
+    if (typeof(manifest.permissions[i]) === 'object') {
+      for (j in manifest.permissions[i]) {
+        if (manifest.permissions[i].hasOwnProperty(j) && j === "usbDevices") {
+          filters = filters.concat(manifest.permissions[i].usbDevices)
+        }
+      }
+    }
+  }
+  for (i=0; i < manifest.optional_permissions.length; ++i) {
+    if (typeof(manifest.optional_permissions[i]) === 'object') {
+      for (j in manifest.optional_permissions[i]) {
+        if (manifest.optional_permissions[i].hasOwnProperty(j) && j === "usbDevices") {
+          filters = filters.concat(manifest.optional_permissions[i].usbDevices)
+        }
+      }
+    }
+  }
+}
+
+detectFilters();
+
+matchFilter = (device) => {
+  var matched = 0;  
+  if (filters.length > 0) {
+    if (filters[0] === null) {
+      return 1;
+    }
+    for (i=0; i < filters.length; ++i) {
+      for ( key in filters[i]) {
+        var localMatch = 0;
+        if (filters[i].hasOwnProperty(key)) {
+          if (filters[i][key] === device[key]) {
+            localMatch = 1
+          } else {
+            localMatch = 0
+          }
+        }
+        matched += localMatch;
+      }
+    }
+  }
+  return matched;
+}
 
 String.prototype.hashCode = function() {
   var hash = 0, i, chr;
@@ -66,7 +115,13 @@ addDevice = (device, spec) => {
 deleteDevice = (deviceId) => {
   delete matchTable[deviceId];
   delete devicesTable[deviceId];
+  try {
+    connectionTable[connectionId].close();      
+  } catch(e) {
+    console.log("error closing connection", e)
+  }
   delete connectionTable[deviceId];
+  disconnectCb(deviceId);  
 }
 
 function gettingDevices() {
@@ -75,7 +130,7 @@ function gettingDevices() {
       devicesTable2 = {};
       matchTable2 = {};
       for(var i = 0; i+1 <= devices.length; i++) {
-        if (!devices[i].interface){
+        if (!devices[i].interface && matchFilter(devices[i])){
           addDevice(devices[i]);
         }
       }
@@ -112,6 +167,7 @@ chrome.hid = {
     cb(Object.values(result));
   },
   connect: (deviceId, cb) => {
+    console.log("connecting:", matchTable[deviceId])
     try {
       if (!connectionTable[deviceId]) {
         connectionTable[deviceId] = new HID.HID(matchTable[deviceId].path);
@@ -124,20 +180,18 @@ chrome.hid = {
   },
   disconnect: (connectionId, cb) => {
     try {
-      connectionTable[connectionId].close();
-      connectionTable[connectionId] = null;
+      deleteDevice(connectionId);            
       if (cb) {
         cb()
       };
     } catch(e) {
       console.log("error disconnecting:",e);
-      deleteDevice(connectionId);
     }
   },
   receive: (connectionId, cb) => {
     try {
       connectionTable[connectionId].read((err, data) => {
-        console.log("read:", err, data);
+        console.log("read:", err, data, data.length);
         cb(0, data);
       });
     } catch(e) {
@@ -154,6 +208,7 @@ chrome.hid = {
   },
   send: (connectionId, reportId, data, cb) => {
     try {
+      //console.log("sending:", data)
       connectionTable[connectionId].write(data) // BUG: if the first byte of a write() is 0x00, you may need to prepend an extra 0x00 due to a bug in hidapi (see issue #187)
       cb();
     } catch(e) {
@@ -161,6 +216,11 @@ chrome.hid = {
       deleteDevice(connectionId);
     }
     // reportId is always 0 in the case of ledger wallet chrome
+  },
+  onDeviceRemoved: {
+    addListener: (cb) => {
+      disconnectCb = cb
+    }
   }
 };
 

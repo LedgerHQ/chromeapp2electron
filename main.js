@@ -7,24 +7,20 @@ const BrowserWindow = electron.BrowserWindow
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 global.chrome = {}
-global.manifest = require('./manifest.json');
+global.manifest = require('./chromeApp/manifest.json');
 global.mainWindow = {}
 require('./chromeApp');
-
+require('./chromeFileSystem');
+require('./chromeUSB');
+require('./chromeI18n');
+require('./chromeRuntime');
+require('./chromeStorage');
 function createWindow () {
   
   // Create the browser window.
   require('./childManagement');
-  
-  chrome.app.window.create('views/layout.html', {
-    id: "main_window",
-    innerBounds: {
-      minWidth: 1000,
-      minHeight: 640
-    }
-  }, function(createdWindow) {
-    console.log("created", createdWindow);
-  });
+  let background = manifest.app.background.scripts[0]
+  require('./chromeApp/'+background);
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
   // Emitted when the window is closed.
@@ -49,6 +45,7 @@ app.on('window-all-closed', function () {
   if (process.platform !== 'darwin') {
     app.quit()
   }
+  hid.kill()
 })
 
 app.on('activate', function () {
@@ -58,6 +55,3 @@ app.on('activate', function () {
     createWindow()
   }
 })
-
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.

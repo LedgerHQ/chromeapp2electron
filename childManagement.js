@@ -1,6 +1,6 @@
 //Communication with child process hid
-var electron = require('electron');  
-var {app, ipcMain} = electron;  
+var {app, ipcMain} = require('electron');  
+
 const { fork } = require('child_process')
 const options = {
   stdio: [ 'pipe', 'pipe', 'pipe', 'ipc' ]

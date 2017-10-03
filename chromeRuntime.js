@@ -1,6 +1,6 @@
-const electron = require('electron')
+var {app, remote} = require('electron')
 // Module to control application life.
-const app = electron.app
+app = app ? app : remote.app
 
 chrome.runtime = {
   sendMessage: (arg1, arg2, arg3, arg4) => {
@@ -20,6 +20,10 @@ chrome.runtime = {
     }
     return
   },
+  electron: true,
+  getBackgroundPage: (cb) => {
+    return 'electron-wrapper'
+  },
   onMessageExternal: {
     addListener: (cb) => {
     }
@@ -30,6 +34,11 @@ chrome.runtime = {
   },
   onLaunched: {
     addListener: (cb) => {
+      cb();
+    }
+  },
+  onClosed: {
+    addListener: (cb) => {
     }
   },
   onUpdateAvailable: {
@@ -37,6 +46,7 @@ chrome.runtime = {
     }
   },
   reload: () => {
+    console.log( " reload")
     app.relaunch();
     app.quit();
   },

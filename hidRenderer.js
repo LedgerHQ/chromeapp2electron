@@ -1,3 +1,5 @@
+const {ipcRenderer} = require('electron')
+
 cbTable = {}
 id = 0;
 /*toArrayBuffer = (json) => {
@@ -10,7 +12,7 @@ id = 0;
 }*/
 
 toArrayBuffer = (json) => {
-  //console.log("read from device", json)
+  //bconsole.log("read from device", json)
   return hexToArrayBuffer(json);
 }
 
@@ -29,7 +31,7 @@ toJson = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {  
-    //console.log("hid reply", arg.args, arg.id);
+    console.log("hid reply", arg.args, arg.id);
     if(arg.buffersBack.length > 0 ) {
       for (var l=0; l<arg.buffersBack.length; ++l) {
         arg.args[arg.buffersBack[l]] = toArrayBuffer(arg.args[arg.buffersBack[l]]);
@@ -47,7 +49,8 @@ makeCall = (call, args, cb) => {
     }
   }
   if (cb) {
-    ++id;
+    while (cbTable[++id] !== undefined){
+    }
     cbTable[id] = args[args.length -1]
 
   } else {
@@ -58,7 +61,7 @@ makeCall = (call, args, cb) => {
       args[buffers[j]] = toJson(args[buffers[j]]);
     }
   }
-  //console.log("makecall", call, args, id)
+  console.log("makecall", call, args, id)
   ipcRenderer.send('hid', {
     call: call,
     args: args,
@@ -84,6 +87,11 @@ chrome ={
     },
     send: (...params) => {
       makeCall(['send'], params, true)
+    },
+    onDeviceRemoved: {
+      addListener: (...params) => {
+        makeCall(['onDeviceRemoved', 'addListener'], params, true)
+      }
     },
   }
 }

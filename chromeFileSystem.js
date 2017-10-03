@@ -1,5 +1,5 @@
-const electron = require('electron')
-const dialog = electron.dialog
+var {dialog, remote} = require('electron')
+dialog = dialog ? dialog : remote.dialog
 chrome.fileSystem = {}
 chrome.fileSystem.chooseEntry = (options, cb) => {
   dialog.showSaveDialog({

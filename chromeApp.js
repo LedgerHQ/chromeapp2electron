@@ -31,11 +31,15 @@ chrome.app = {
         frame: options.frame? false : true,
         show: !options.hidden, 
       });
+      //mainWindow.setMenu(null);
       mainWindow.loadURL(url.format({
-        pathname: path.join(__dirname, view),
+        pathname: path.join(__dirname, 'chromeApp', view),
         protocol: 'file:',
         slashes: true
       }))
+      /*if(cb) {
+        cb()
+      }*/
     }
   }
 };
