@@ -13,6 +13,7 @@ hid.on('disconnect', (message) => {
 hid.on('exit', (code, signal) => {
   console.log('child process exited with ' +
   `code ${code} and signal ${signal}`);
+  hid = fork('./hidChild');
 })
 //Communication with the renderer
 // Listen for async message from renderer process
@@ -23,10 +24,15 @@ ipcMain.on('hid', (event, arg) => {
     hid.send(arg)
   } catch(e) {
     console.log("channel closed",arg.id)
+    mainWindow.webContents.send('hid-reply', {
+      id: arg.id,
+      err: "Node-hid process shutdown",
+      args: []
+    });
   }
 });
 
 hid.on('message', message => {
-  //console.log('message from child hid:', message.id);
-  mainWindow.webContents.send('hid-reply', message);
+  console.log('message from child hid:', message);
+  mainWindow.webContents.send('hid-reply', message);    
 });

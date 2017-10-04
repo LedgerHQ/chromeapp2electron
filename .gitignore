@@ -11,3 +11,4 @@ src
 views
 manifest.json
 chromeApp
+.directory

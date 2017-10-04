@@ -5,7 +5,7 @@ var connectionTable = {};
 var matchTable2 = {};
 const manifest = require('./chromeApp/manifest.json')
 var filters = [];
-var disconnectCb = undefined
+var disconnectCb = () => {}
 
 detectFilters = () => {
   for (i=0; i < manifest.permissions.length; ++i) {
@@ -113,15 +113,19 @@ addDevice = (device, spec) => {
 }
 
 deleteDevice = (deviceId) => {
-  delete matchTable[deviceId];
-  delete devicesTable[deviceId];
-  try {
-    connectionTable[connectionId].close();      
-  } catch(e) {
-    console.log("error closing connection", e)
-  }
-  delete connectionTable[deviceId];
-  disconnectCb(deviceId);  
+  console.log("deleting", deviceId)
+  if (devicesTable[deviceId]){
+    matchTable[deviceId] = undefined;
+    devicesTable[deviceId] = undefined;
+    try {
+      connectionTable[deviceId].close()
+    } catch(e) {
+      console.log("error closing", deviceId, e)
+    }
+    connectionTable[deviceId] = undefined;
+    disconnectCb(false, deviceId);    
+  } else { console.log("already deleted")}
+  
 }
 
 function gettingDevices() {
@@ -134,6 +138,12 @@ function gettingDevices() {
           addDevice(devices[i]);
         }
       }
+      for (k in devicesTable) {
+        if (devicesTable.hasOwnProperty(k) && !devicesTable2.hasOwnProperty(k)) {
+          console.log("missing device #####################################")
+          deleteDevice(parseInt(k))
+        }
+      }
       devicesTable = devicesTable2;
       matchTable = matchTable2;
       gettingDevices();
@@ -144,81 +154,96 @@ gettingDevices();
 
 chrome.hid = {
   getDevices: (options, cb) => {
-    result = {};
-    for (var device in matchTable) {
-      if (matchTable.hasOwnProperty(device)) {
-        if (options.hasOwnProperty("filters")) {
-          if (options.filters.length > 0) {
-            for (var j = 0; j < options.filters.length ; j++) {
-              if (matchTable[device].productId === options.filters[j].productId && matchTable[device].vendorId === options.filters[j].vendorId) {
-                result[device] = (devicesTable[device]);
+    try {
+      result = {};
+      for (var device in matchTable) {
+        if (matchTable.hasOwnProperty(device)) {
+          if (options.hasOwnProperty("filters")) {
+            if (options.filters.length > 0) {
+              for (var j = 0; j < options.filters.length ; j++) {
+                if (matchTable[device].productId === options.filters[j].productId && matchTable[device].vendorId === options.filters[j].vendorId) {
+                  result[device] = (devicesTable[device]);
+                }
               }
+            } else {
+              result[device] = devicesTable[device];
             }
-          } else {
-            result[device] = devicesTable[device];
+          } else if ((matchTable[device].productId === options.productId) || options.productId === undefined) {
+            if ((matchTable[device].vendorId === options.vendorId) || options.vendorId === undefined) {
+              result[device] = devicesTable[device];
+            } 
           }
-        } else if ((matchTable[device].productId === options.productId) || options.productId === undefined) {
-          if ((matchTable[device].vendorId === options.vendorId) || options.vendorId === undefined) {
-            result[device] = devicesTable[device];
-          } 
         }
       }
+      cb(false, Object.values(result))
+    } catch(e) {
+      cb(e)
     }
-    cb(Object.values(result));
+    
   },
   connect: (deviceId, cb) => {
-    console.log("connecting:", matchTable[deviceId])
+    //console.log("connecting:", deviceId)
     try {
       if (!connectionTable[deviceId]) {
         connectionTable[deviceId] = new HID.HID(matchTable[deviceId].path);
       }
-      cb({connectionId: deviceId})  
+      cb(false,{connectionId: deviceId}) 
     } catch(e) {
-      console.log("error connecting:",e);
-      deleteDevice(deviceId);
+      //console.log("error connecting:",e);
+      //process.send({lastError: "error connecting:"+e})
+      deleteDevice(deviceId);      
+      if (cb) {
+        cb(e)
+      };
     }
   },
   disconnect: (connectionId, cb) => {
+    //console.log("DISCONNECT", connectionId, cb)
     try {
-      deleteDevice(connectionId);            
+      //console.log("disconnect", connectionId)
+      deleteDevice(connectionId);                    
       if (cb) {
-        cb()
+        cb(false)
       };
     } catch(e) {
-      console.log("error disconnecting:",e);
+      //console.log("error disconnecting:",e);
+      //process.send({lastError: "error disconnecting:"+e})
+      if (cb) {
+        cb(e)
+      };
     }
   },
   receive: (connectionId, cb) => {
     try {
       connectionTable[connectionId].read((err, data) => {
-        console.log("read:", err, data, data.length);
-        cb(0, data);
+        console.log("read:", err, data);
+        if (err) {
+          cb(err, 0, data);
+        } else {
+          cb(false, 0, data);          
+        }
       });
     } catch(e) {
-      console.log("receiving failed:", e);
+      //console.log("receiving failed:", e);
       deleteDevice(connectionId);
+      cb(e);
     }
-    /*connectionTable[connectionId].on("data", (data) =>  {//on crashes
-      var reportId = 0;
-      //console.log("received data", data)
-      cb(reportId, data)
-    })*/
-
-    //cb(0, hexToArrayBuffer('01010500000002698200000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000'))    
   },
   send: (connectionId, reportId, data, cb) => {
     try {
-      //console.log("sending:", data)
       connectionTable[connectionId].write(data) // BUG: if the first byte of a write() is 0x00, you may need to prepend an extra 0x00 due to a bug in hidapi (see issue #187)
-      cb();
+      cb(false);
     } catch(e) {
-      console.log("sending error:", e);
+      //console.log("sending error:", e);
       deleteDevice(connectionId);
+      cb(e);
+      
     }
-    // reportId is always 0 in the case of ledger wallet chrome
+    // reportId is always 0 in the case of ledger
   },
   onDeviceRemoved: {
     addListener: (cb) => {
+      //console.log("ondeviceremoved", cb)      
       disconnectCb = cb
     }
   }

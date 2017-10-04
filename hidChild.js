@@ -16,25 +16,17 @@ try{
   }
   
   process.on('message', message => {  
-    //console.log('message from parent to hid:', message);
+    console.log('message from parent to hid:', message.call, message.id);
     var call = chrome.hid
     for(var j = 0; j < message.call.length; ++j) {
       call = call[message.call[j]]
     }
-    /*if(message.buffers.length > 0) {
-      for(i=0; i<message.buffers.length; ++i) {
-        message.args[message.buffers[i]] = toArrayBuffer(message.args[message.buffers[i]]);
-      }
-    }*/
     if (!message.id){
-      call(message.args)    
+      call.apply(this,message.args)    
     } else {
-      var parsedArgs = []
-      for(var k = 0; k < message.args.length -1; ++k) {
-        parsedArgs.push(message.args[k])
-      }
+      var parsedArgs = message.args;
       parsedArgs.push(
-        (...returned) => {
+        (err,...returned) => {
           var buffersBack = [];
           for (var l=0; l<returned.length; ++l) {
             if( returned[l] instanceof Buffer) {
@@ -44,13 +36,14 @@ try{
           }
           var response = {
             id: message.id,
+            err: err,
             args: returned,
             buffersBack: buffersBack
           }          
           process.send(response)
         }
       )
-      //console.log("parsed arg", parsedArgs)
+      //console.log("parsed arg", message.call, parsedArgs)
       call.apply(this,parsedArgs)
     }
   });
