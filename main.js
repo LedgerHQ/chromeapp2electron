@@ -9,6 +9,7 @@ const BrowserWindow = electron.BrowserWindow
 global.chrome = {}
 global.manifest = require('./chromeApp/manifest.json');
 global.mainWindow = {}
+global.nodeRequire = require;
 require('./chromeApp');
 require('./chromeFileSystem');
 require('./chromeUSB');

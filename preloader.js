@@ -5,10 +5,10 @@ const url = require('url')
 const electron = require('electron')
 window.hexToArrayBuffer = require('hex-to-array-buffer')
 window.nodeRequire = require;
-
 window.open = (url) => {
   electron.shell.openExternal(url)
 }
+
 
 
 global.mainWindow = {}
@@ -38,8 +38,3 @@ require('./chromeRuntime');
 require('./chromeStorage');
 require('./chromeCommands');
 require('./chromePermissions');
-
-
-delete window.require;
-delete window.exports;
-delete window.module;

@@ -22,34 +22,34 @@ convertString = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {
-    console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
-    if (arg.err) {
-      setTimeout(() => {
-        chrome.runtime.lastError = arg.err;
-        try {
-          cbTable[arg.table][arg.id].apply(this, arg.args);
-        } catch(e) {
-          console.log("error in hid callback", e, arg)
-        }
-        chrome.runtime.lastError = undefined;        
-      }, 0)
-    } else {
-      if(arg.buffersBack.length > 0 ) {
-        for (var l=0; l<arg.buffersBack.length; ++l) {
-          arg.args[arg.buffersBack[l]] = toArrayBuffer(arg.args[arg.buffersBack[l]]);
-        }
+  console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
+  if (arg.err) {
+    setTimeout(() => {
+      chrome.runtime.lastError = arg.err;
+      try {
+        cbTable[arg.table][arg.id].apply(this, arg.args);
+      } catch(e) {
+        console.log("error in hid callback", e, arg)
       }
-      setTimeout(() => {
-        try {
-          cbTable[arg.table][arg.id].apply(this, arg.args);
-          if (arg.table === 'once') {
-            cbTable[arg.table][arg.id] = undefined;            
-          }
-        } catch(e) {
-          console.log("error in hid callback", e, arg)
-        }
-      }, 0)
+      chrome.runtime.lastError = undefined;        
+    }, 0)
+  } else {
+    if(arg.buffersBack.length > 0 ) {
+      for (var l=0; l<arg.buffersBack.length; ++l) {
+        arg.args[arg.buffersBack[l]] = toArrayBuffer(arg.args[arg.buffersBack[l]]);
+      }
     }
+    setTimeout(() => {
+      try {
+        cbTable[arg.table][arg.id].apply(this, arg.args);
+        if (arg.table === 'once') {
+          cbTable[arg.table][arg.id] = undefined;            
+        }
+      } catch(e) {
+        console.log("error in hid callback", e, arg)
+      }
+    }, 0)
+  }
 });
 
 makeCall = (call, args, listener) => {   

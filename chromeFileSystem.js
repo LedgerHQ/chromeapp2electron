@@ -1,4 +1,4 @@
-var {dialog, remote} = require('electron')
+var {dialog, remote} = nodeRequire('electron')
 dialog = dialog ? dialog : remote.dialog
 const fs = require('fs')
 

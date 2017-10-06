@@ -1,6 +1,6 @@
 global.chrome = {}
 try{
-  require('./chromeHID')
+  const hidModule = require('./chromeHID')
   const hexToArrayBuffer = require('hex-to-array-buffer')
   function toString(buffer) { 
     return Array.prototype.map.call(new Uint8Array(buffer), x => ('00' + x.toString(16)).slice(-2)).join('');
@@ -21,12 +21,13 @@ try{
     for(var j = 0; j < message.call.length; ++j) {
       call = call[message.call[j]]
     }
-    if (!message.id){
-      call.apply(this,message.args)    
-    } else {
-      var parsedArgs = message.args;
+    var parsedArgs = message.args;
+    if (message.id){      
       parsedArgs.push(
         (err,...returned) => {
+          if (!(message.call === ['getDevices'])){
+            hidModule.decrementQueue()           
+          }
           var buffersBack = [];
           for (var l=0; l<returned.length; ++l) {
             if( returned[l] instanceof Buffer) {
@@ -45,8 +46,15 @@ try{
         }
       )
       //console.log("parsed arg", message.call, parsedArgs)
-      call.apply(this,parsedArgs)
     }
+    hidModule.makeCall(
+      function () {
+        if (message.id && !(message.call === ['getDevices'])) {
+          hidModule.incrementQueue()
+        } 
+        call.apply(this,parsedArgs)
+      }
+    ) 
   });
   //console.log("child hif launched")  
 } catch(e) {

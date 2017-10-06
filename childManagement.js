@@ -32,6 +32,6 @@ ipcMain.on('hid', (event, arg) => {
 });
 
 hid.on('message', message => {
-  console.log('message from child hid:', message);
+  console.log('message from child hid:', message.id);
   mainWindow.webContents.send('hid-reply', message);    
 });

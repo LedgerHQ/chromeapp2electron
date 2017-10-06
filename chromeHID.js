@@ -132,29 +132,75 @@ deleteDevice = (deviceId) => {
   
 }
 
-function gettingDevices() {
-  setTimeout(function () {
-      var devices = HID.devices();
-      devicesTable2 = {};
-      matchTable2 = {};
-      for(var i = 0; i+1 <= devices.length; i++) {
-        if (!devices[i].interface && matchFilter(devices[i])){
-          addDevice(devices[i]);
-        }
-      }
-      for (k in devicesTable) {
-        if (devicesTable.hasOwnProperty(k) && !devicesTable2.hasOwnProperty(k)) {
-          console.log("missing device #####################################")
-          deleteDevice(parseInt(k))
-        }
-      }
-      devicesTable = devicesTable2;
-      matchTable = matchTable2;
-      gettingDevices();
-  }, 500);
+var discoverManager = {}
+
+var callQueue = 0
+
+function incrementQueue() {
+  ++callQueue
 }
 
-gettingDevices();
+function decrementQueue() {
+  --callQueue
+}
+
+function checkCalls (cb) {
+  console.log("callQueue=", callQueue)
+  if (!callQueue) {
+    setTimeout(cb, 0)
+  } else {
+    setTimeout(function () {
+        checkCalls(cb)
+      },
+      50
+    )
+  }
+}
+
+var queueManager = {}
+var discover = false;
+var done = true;
+function makeCall(cb) {
+  if (!discover) {
+    setTimeout(cb,0)
+  } else {
+    checkCalls(
+      function () {
+        discover = false     
+        var devices = HID.devices();
+        devicesTable2 = {};
+        matchTable2 = {};
+        for(var i = 0; i+1 <= devices.length; i++) {
+          if (!devices[i].interface && matchFilter(devices[i])){
+            addDevice(devices[i]);
+          }
+        }
+        for (k in devicesTable) {
+          if (devicesTable.hasOwnProperty(k) && !devicesTable2.hasOwnProperty(k)) {
+            console.log("missing device #########################################################################################################################################################")
+            deleteDevice(parseInt(k))
+          }
+        }
+        devicesTable = devicesTable2;
+        matchTable = matchTable2;
+        setTimeout(function () {
+          cb();
+        },0)   
+      }
+    )
+  }
+}
+
+
+function discoverClock() {
+  setTimeout(function () {
+    discover = true;
+    discoverClock();
+  }
+  , 500)
+}
+
+discoverClock()
 
 chrome.hid = {
   getDevices: (options, cb) => {
@@ -256,5 +302,8 @@ chrome.hid = {
   }
 };
 
-
-
+module.exports = {
+  incrementQueue: incrementQueue,
+  decrementQueue: decrementQueue,
+  makeCall:  makeCall
+}
