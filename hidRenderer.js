@@ -1,6 +1,8 @@
 const {ipcRenderer} = require('electron')
 
 var cbTable = {}
+cbTable.once = {}
+cbTable.onRemoved = {}
 var lastError = undefined
 var id = 0;
 
@@ -20,13 +22,12 @@ convertString = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {
-    console.log("hid reply", arg.args, arg.id, arg.err);
+    console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
     if (arg.err) {
       setTimeout(() => {
         chrome.runtime.lastError = arg.err;
         try {
-          console.log("calling cb ", arg.id)
-          cbTable[arg.id].apply(this, arg.args);
+          cbTable[arg.table][arg.id].apply(this, arg.args);
         } catch(e) {
           console.log("error in hid callback", e, arg)
         }
@@ -40,10 +41,9 @@ ipcRenderer.on('hid-reply', (event, arg) => {
       }
       setTimeout(() => {
         try {
-          console.log("calling cb b ", arg.id)                  
-          cbTable[arg.id].apply(this, arg.args);
-          if (!(typeof(arg.id) === 'string')) {
-            cbTable[arg.id] = undefined;
+          cbTable[arg.table][arg.id].apply(this, arg.args);
+          if (arg.table === 'once') {
+            cbTable[arg.table][arg.id] = undefined;            
           }
         } catch(e) {
           console.log("error in hid callback", e, arg)
@@ -52,7 +52,7 @@ ipcRenderer.on('hid-reply', (event, arg) => {
     }
 });
 
-makeCall = (call, args, perm) => {   
+makeCall = (call, args, listener) => {   
   var buffers = [];
   for (var i=0; i<args.length; ++i) {
     if( args[i] instanceof ArrayBuffer) {
@@ -61,14 +61,20 @@ makeCall = (call, args, perm) => {
   }
   //console.log("call arg", call, args, typeof(args[args.length -1]) === 'function')
   if (typeof(args[args.length -1]) === 'function') {
-    if (perm) {
-      cbTable[perm] = args[args.length -1]
-      thisId = perm
+    var table = "once"
+    if (listener) {
+      table = listener
+      var i=0
+      while (cbTable[table][++i] !== undefined){
+      }
+      cbTable[table][i] = args[args.length -1]
+      thisId = i
+      args = [thisId].concat([args])
     } else {
-      while (cbTable[++id] !== undefined){
+      while (cbTable[table][++id] !== undefined){
       }
       thisId = id
-      cbTable[id] = args[args.length -1]
+      cbTable[table][id] = args[args.length -1]
     }
     args.pop()
   } else {
@@ -79,11 +85,12 @@ makeCall = (call, args, perm) => {
       args[buffers[j]] = convertString(args[buffers[j]]);
     }
   }
-  console.log("makecall", call, args, thisId)
+  console.log("makecall", call, args, table, thisId)
   ipcRenderer.send('hid', {
     call: call,
     args: args,
     id: thisId,
+    table: table,
     buffers: buffers
   })
 }
@@ -111,10 +118,15 @@ chrome ={
     },
     onDeviceRemoved: {
       addListener: (...params) => {
-        makeCall(['onDeviceRemoved', 'addListener'], params, "disconnectCb")
+        makeCall(['onDeviceRemoved', 'addListener'], params, "onRemoved")
       },
       removeListener: (...params) => {
-        cbTable["disconnectCb"] = () => {};
+        for (cb in cbTable["onRemoved"]) {
+          if ( cbTable["onRemoved"].hasOwnProperty(cb) && cbTablecbTable["onRemoved"][cb] === params[0]) {
+            cbTable["onRemoved"][cb] = undefined
+            makeCall(['onDeviceRemoved', 'removeListener', cb])
+          }
+        }
       }
     },
   }

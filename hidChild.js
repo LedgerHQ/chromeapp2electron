@@ -36,6 +36,7 @@ try{
           }
           var response = {
             id: message.id,
+            table: message.table,
             err: err,
             args: returned,
             buffersBack: buffersBack

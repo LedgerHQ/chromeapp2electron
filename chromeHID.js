@@ -5,7 +5,7 @@ var connectionTable = {};
 var matchTable2 = {};
 const manifest = require('./chromeApp/manifest.json')
 var filters = [];
-var disconnectCb = () => {}
+var disconnectCbs = {}
 
 detectFilters = () => {
   for (i=0; i < manifest.permissions.length; ++i) {
@@ -123,7 +123,11 @@ deleteDevice = (deviceId) => {
       console.log("error closing", deviceId, e)
     }
     connectionTable[deviceId] = undefined;
-    disconnectCb(false, deviceId);    
+    for (cb in disconnectCbs) {
+      if (disconnectCbs.hasOwnProperty(cb)) {
+        disconnectCbs[cb](false, deviceId);      
+      }
+    }
   } else { console.log("already deleted")}
   
 }
@@ -242,9 +246,12 @@ chrome.hid = {
     // reportId is always 0 in the case of ledger
   },
   onDeviceRemoved: {
-    addListener: (cb) => {
+    addListener: (id, cb) => {
       //console.log("ondeviceremoved", cb)      
-      disconnectCb = cb
+      disconnectCbs[id] = cb
+    },
+    removeListener: (id) => {
+      disconnectCbs[id] = undefined
     }
   }
 };

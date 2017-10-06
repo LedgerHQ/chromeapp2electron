@@ -13,7 +13,6 @@ hid.on('disconnect', (message) => {
 hid.on('exit', (code, signal) => {
   console.log('child process exited with ' +
   `code ${code} and signal ${signal}`);
-  hid = fork('./hidChild');
 })
 //Communication with the renderer
 // Listen for async message from renderer process

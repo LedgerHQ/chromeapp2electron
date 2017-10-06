@@ -16,7 +16,7 @@ document.addEventListener("DOMContentLoaded", function(event) {
         }
       }
       for (var i=0; i < images.length; ++i) {        
-        //console.log("replace image", i, images[i])        
+        //console.log("replace image", i, images[i])
         var [a, prefix, pathLocal] = images[i].src.match(/file\:\/\/(.*)(\/assets.*)/);
         //console.log(a, prefix, pathLocal)
         if (prefix !== global.path) {

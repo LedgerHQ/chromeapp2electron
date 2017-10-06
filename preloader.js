@@ -2,6 +2,7 @@ global.chrome = {}
 
 const path = require('path')
 const url = require('url')
+const electron = require('electron')
 window.hexToArrayBuffer = require('hex-to-array-buffer')
 window.nodeRequire = require;
 
@@ -36,6 +37,7 @@ require('./chromeI18n');
 require('./chromeRuntime');
 require('./chromeStorage');
 require('./chromeCommands');
+require('./chromePermissions');
 
 
 delete window.require;
