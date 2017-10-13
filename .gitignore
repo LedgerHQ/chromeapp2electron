@@ -12,3 +12,5 @@ views
 manifest.json
 chromeApp
 .directory
+.DS_Store
+ledger-wrapper-*

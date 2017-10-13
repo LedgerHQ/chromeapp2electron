@@ -5,7 +5,7 @@ const dialog = electron.dialog
 const BrowserWindow = electron.BrowserWindow
 
 //*****************************************Updater********************************************** */
-const server = 'https://your-deployment-url.com'
+/*const server = 'https://your-deployment-url.com'
 const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
 autoUpdater.setFeedURL(feed)
@@ -31,15 +31,16 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
 autoUpdater.on('error', message => {
   console.error('There was a problem updating the application')
   console.error(message)
-})
+})*/
 
 //*************************************************************************************************** */
 
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 global.chrome = {}
-global.manifest = require('./chromeApp/manifest.json');
 global.mainWindow = {}
+
+global.manifest = require('./chromeApp/manifest.json');
 global.nodeRequire = require;
 require('./chromeApp');
 require('./chromeFileSystem');
@@ -47,11 +48,11 @@ require('./chromeUSB');
 require('./chromeI18n');
 require('./chromeRuntime');
 require('./chromeStorage');
+require('./childManagement');
+let background = manifest.app.background.scripts[0]
+
 function createWindow () {
-  
   // Create the browser window.
-  require('./childManagement');
-  let background = manifest.app.background.scripts[0]
   require('./chromeApp/'+background);
   // Open the DevTools.
   // mainWindow.webContents.openDevTools()
@@ -76,8 +77,9 @@ app.on('window-all-closed', function () {
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
     app.quit()
+    hid.kill()    
   }
-  hid.kill()
+  delete require.cache[require.resolve('./chromeApp/'+background)]
 })
 
 app.on('activate', function () {

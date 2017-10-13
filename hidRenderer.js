@@ -22,7 +22,7 @@ convertString = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {
-  console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
+  //console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
   if (arg.err) {
     setTimeout(() => {
       chrome.runtime.lastError = arg.err;
@@ -85,7 +85,7 @@ makeCall = (call, args, listener) => {
       args[buffers[j]] = convertString(args[buffers[j]]);
     }
   }
-  console.log("makecall", call, args, table, thisId)
+  //console.log("makecall", call, args, table, thisId)
   ipcRenderer.send('hid', {
     call: call,
     args: args,
