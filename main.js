@@ -3,18 +3,21 @@ const app = electron.app
 const autoUpdater = electron.autoUpdater
 const dialog = electron.dialog
 const BrowserWindow = electron.BrowserWindow
-
+var log = require('electron-log')
+log.transports.file.level = 'silly'
+log.info('app starts')
 //*****************************************Updater********************************************** */
-/*const server = 'https://your-deployment-url.com'
+const server = 'http://localhost:8080'
 const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
 autoUpdater.setFeedURL(feed)
 
 setInterval(() => {
   autoUpdater.checkForUpdates()
-}, 60000)
+}, 6000)
 
 autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
+  log.info('update downloaded', event, releaseNotes, releaseName)
   const dialogOpts = {
     type: 'info',
     buttons: ['Restart', 'Later'],
@@ -29,9 +32,9 @@ autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
 })
 
 autoUpdater.on('error', message => {
-  console.error('There was a problem updating the application')
-  console.error(message)
-})*/
+  log.error('There was a problem updating the application')
+  log.error(message)
+})
 
 //*************************************************************************************************** */
 
@@ -48,10 +51,11 @@ require('./chromeUSB');
 require('./chromeI18n');
 require('./chromeRuntime');
 require('./chromeStorage');
-require('./childManagement');
 let background = manifest.app.background.scripts[0]
 
 function createWindow () {
+  require('./childManagement');
+  
   // Create the browser window.
   require('./chromeApp/'+background);
   // Open the DevTools.
@@ -77,9 +81,10 @@ app.on('window-all-closed', function () {
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
     app.quit()
-    hid.kill()    
   }
+  hid.kill()      
   delete require.cache[require.resolve('./chromeApp/'+background)]
+  delete require.cache[require.resolve('./childManagement')]
 })
 
 app.on('activate', function () {
