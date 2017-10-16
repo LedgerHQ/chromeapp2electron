@@ -25,7 +25,7 @@ try{
     if (message.id){      
       parsedArgs.push(
         (err,...returned) => {
-          if (!(message.call === ['getDevices'])){
+          if (!(message.call[0] === 'getDevices') && !(message.call[0] === 'onDeviceRemoved')){            
             hidModule.decrementQueue()           
           }
           var buffersBack = [];
@@ -49,7 +49,7 @@ try{
     }
     hidModule.makeCall(
       function () {
-        if (message.id && !(message.call === ['getDevices'])) {
+        if (message.id &&  !(message.call[0] === 'getDevices') && !(message.call[0] === 'onDeviceRemoved')) { 
           hidModule.incrementQueue()
         } 
         call.apply(this,parsedArgs)

@@ -5,7 +5,7 @@ cbTable.once = {}
 cbTable.onRemoved = {}
 var lastError = undefined
 var id = 0;
-
+var idCb = 0;
 toArrayBuffer = (json) => {
   //console.log("read from device", json)
   return hexToArrayBuffer(json);
@@ -64,11 +64,10 @@ makeCall = (call, args, listener) => {
     var table = "once"
     if (listener) {
       table = listener
-      var i=0
-      while (cbTable[table][++i] !== undefined){
+      while (cbTable[table][++idCb] !== undefined){
       }
-      cbTable[table][i] = args[args.length -1]
-      thisId = i
+      cbTable[table][idCb] = args[args.length -1]
+      thisId = idCb
       args = [thisId].concat([args])
     } else {
       while (cbTable[table][++id] !== undefined){

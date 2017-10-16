@@ -7,7 +7,7 @@ var log = require('electron-log')
 log.transports.file.level = 'silly'
 log.info('app starts')
 //*****************************************Updater********************************************** */
-const server = 'http://localhost:8080'
+/*const server = 'http://localhost:8080'
 const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
 autoUpdater.setFeedURL(feed)
@@ -35,7 +35,7 @@ autoUpdater.on('error', message => {
   log.error('There was a problem updating the application')
   log.error(message)
 })
-
+*/
 //*************************************************************************************************** */
 
 // Keep a global reference of the window object, if you don't, the window will
