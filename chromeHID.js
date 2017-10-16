@@ -171,7 +171,7 @@ function makeCall(cb) {
         devicesTable2 = {};
         matchTable2 = {};
         for(var i = 0; i+1 <= devices.length; i++) {
-          if (!devices[i].interface && matchFilter(devices[i])){
+          if (devices[i].interface < 1 && matchFilter(devices[i])){
             addDevice(devices[i]);
           }
         }
@@ -211,9 +211,15 @@ chrome.hid = {
           if (options.hasOwnProperty("filters")) {
             if (options.filters.length > 0) {
               for (var j = 0; j < options.filters.length ; j++) {
-                if (matchTable[device].productId === options.filters[j].productId && matchTable[device].vendorId === options.filters[j].vendorId) {
+                if (
+                  options.filters[j].productId ? matchTable[device].productId === options.filters[j].productId : true
+                  && options.filters[j].vendorId ? matchTable[device].vendorId === options.filters[j].vendorId : true
+                  && options.filters[j].usagePage ? matchTable[device].usagePage === options.filters[j].usagePage : true
+                  && options.filters[j].usage ? matchTable[device].usage === options.filters[j].usage : true
+                ) {
                   result[device] = (devicesTable[device]);
                 }
+
               }
             } else {
               result[device] = devicesTable[device];
