@@ -22,7 +22,7 @@ convertString = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {
-  //console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
+  console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
   if (arg.err) {
     setTimeout(() => {
       chrome.runtime.lastError = arg.err;
@@ -84,7 +84,7 @@ makeCall = (call, args, listener) => {
       args[buffers[j]] = convertString(args[buffers[j]]);
     }
   }
-  //console.log("makecall", call, args, table, thisId)
+  console.log("makecall", call, args, table, thisId)
   ipcRenderer.send('hid', {
     call: call,
     args: args,
@@ -121,9 +121,9 @@ chrome ={
       },
       removeListener: (...params) => {
         for (cb in cbTable["onRemoved"]) {
-          if ( cbTable["onRemoved"].hasOwnProperty(cb) && cbTablecbTable["onRemoved"][cb] === params[0]) {
+          if ( cbTable["onRemoved"].hasOwnProperty(cb) && cbTable["onRemoved"][cb] === params[0]) {
             cbTable["onRemoved"][cb] = undefined
-            makeCall(['onDeviceRemoved', 'removeListener', cb])
+            makeCall(['onDeviceRemoved', 'removeListener'], [cb])
           }
         }
       }

@@ -6,6 +6,7 @@ var matchTable2 = {};
 const manifest = require('./chromeApp/manifest.json')
 var filters = [];
 var disconnectCbs = {}
+var deviceCount = 0
 
 detectFilters = () => {
   for (i=0; i < manifest.permissions.length; ++i) {
@@ -53,20 +54,9 @@ matchFilter = (device) => {
   return matched;
 }
 
-String.prototype.hashCode = function() {
-  var hash = 0, i, chr;
-  if (this.length === 0) return hash;
-  for (i = 0; i < this.length; i++) {
-    chr   = this.charCodeAt(i);
-    hash  = ((hash << 5) - hash) + chr;
-    hash |= 0; // Convert to 32bit integer
-  }
-  return hash;
-};
-
 deviceToHid = (device, id) => {
   return {
-    deviceId: id,
+    deviceId: parseInt(id),
     vendorId: device.vendorId,
     productId: device.productId,
     productName: device.product,
@@ -104,11 +94,23 @@ function toBuffer(ab) {
 }
 
 addDevice = (device, spec) => {
-  var hash = device.path.hashCode();
-  matchTable2[hash] = device;
-  devicesTable2[hash] = deviceToHid(device, hash);
+  var set = false
+  for (k in matchTable) {
+    if (matchTable.hasOwnProperty(k) && matchTable[k] !== undefined) {
+      if (matchTable[k].path === device.path) {
+        console.log("device ",k, "alreday exsits")
+        set = k
+      }
+    }
+  }
+  if (!set) {
+    while (matchTable[++deviceCount] !== undefined){}
+    set = deviceCount
+  }
+  matchTable2[set] = device;
+  devicesTable2[set] = deviceToHid(device, set);
   if (spec) {
-    specificTable[hash] = deviceToHid(device, hash);        
+    specificTable[set] = deviceToHid(device, set);        
   }
 }
 
@@ -158,49 +160,43 @@ function checkCalls (cb) {
 }
 
 var queueManager = {}
-var discover = false;
+var discover = true;
 var done = true;
 function makeCall(cb) {
   if (!discover) {
     setTimeout(cb,0)
   } else {
-    checkCalls(
-      function () {
-        discover = false     
-        var devices = HID.devices();
-        devicesTable2 = {};
-        matchTable2 = {};
-        for(var i = 0; i+1 <= devices.length; i++) {
-          if (devices[i].interface < 1 && matchFilter(devices[i])){
-            addDevice(devices[i]);
+    setTimeout(function () {
+      discover = false
+      checkCalls(
+        function () {
+          var devices = HID.devices();
+          devicesTable2 = {};
+          matchTable2 = {};
+          for(var i = 0; i+1 <= devices.length; i++) {
+            if (devices[i].interface < 1 && matchFilter(devices[i])){
+              addDevice(devices[i]);
+            }
           }
-        }
-        for (k in devicesTable) {
-          if (devicesTable.hasOwnProperty(k) && !devicesTable2.hasOwnProperty(k)) {
-            console.log("missing device #########################################################################################################################################################")
-            deleteDevice(parseInt(k))
+          for (k in devicesTable) {
+            if (devicesTable.hasOwnProperty(k) && !devicesTable2.hasOwnProperty(k)) {
+              console.log("missing device #########################################################################################################################################################")
+              deleteDevice(parseInt(k))
+            }
           }
+          devicesTable = devicesTable2;
+          matchTable = matchTable2;
+          setTimeout(function () {
+                discover = true;
+              }, 500)
+          setTimeout(function () {
+            cb();
+          },0)   
         }
-        devicesTable = devicesTable2;
-        matchTable = matchTable2;
-        setTimeout(function () {
-          cb();
-        },0)   
-      }
-    )
+      )
+    },0)
   }
 }
-
-
-function discoverClock() {
-  setTimeout(function () {
-    discover = true;
-    discoverClock();
-  }
-  , 500)
-}
-
-discoverClock()
 
 chrome.hid = {
   getDevices: (options, cb) => {
