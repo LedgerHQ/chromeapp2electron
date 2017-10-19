@@ -179,7 +179,7 @@ function checkDevices() {
       discover = true
       var devices = HID.devices();
       devicesTable2 = {};
-      matchTable2 = {};
+      matchTable2 = {};      
       for(var i = 0; i+1 <= devices.length; i++) {
         if (devices[i].interface < 1 && matchFilter(devices[i])){
           addDevice(devices[i]);
@@ -235,7 +235,7 @@ chrome.hid = {
       //console.log("result get", options, Object.values(result))
       cb(false, Object.values(result))
     } catch(e) {
-      cb(e)
+      cb(e, [])
     }
     
   },
@@ -244,6 +244,7 @@ chrome.hid = {
     try {
       if (!connectionTable[deviceId]) {
         connectionTable[deviceId] = new HID.HID(matchTable[deviceId].path);
+
       }
       cb(false,{connectionId: deviceId}) 
     } catch(e) {

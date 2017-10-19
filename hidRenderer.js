@@ -22,18 +22,17 @@ convertString = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {
-  console.log("hid reply", JSON.stringify(arg));
   if (arg.err) {
     setTimeout(() => {
       chrome.runtime.lastError = arg.err;
-      console.log("error in hid response", JSON.stringify(arg.err))
+      console.log("error in hid response", arg.err)
       try {
         cbTable[arg.table][arg.id].apply(this, arg.args);
         if (arg.table === 'once') {
           cbTable[arg.table][arg.id] = undefined;            
         }
       } catch(e) {
-        console.log("error in hid callback call", e, JSON.stringify(arg))
+        console.log("error in hid callback call", e, arg)
       }
       chrome.runtime.lastError = undefined;        
     }, 0)
@@ -50,13 +49,13 @@ ipcRenderer.on('hid-reply', (event, arg) => {
           cbTable[arg.table][arg.id] = undefined;            
         }
       } catch(e) {
-        console.log("error in hid callback call", e, JSON.stringify(arg))
+        console.log("empty hid callback call", e,arg)
       }
     }, 0)
   }
 });
 
-makeCall = (call, args, listener) => {   
+makeCall = (call, args, listener) => {     
   var buffers = [];
   for (var i=0; i<args.length; ++i) {
     if( args[i] instanceof ArrayBuffer) {
