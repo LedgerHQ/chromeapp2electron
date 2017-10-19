@@ -1,16 +1,61 @@
 const electron = require('electron')
 const app = electron.app
 const autoUpdater = electron.autoUpdater
+const updater = require('electron-simple-updater');
+updater.init('http://localhost:8080/updates.json');
 const dialog = electron.dialog
 const BrowserWindow = electron.BrowserWindow
 var log = require('electron-log')
 log.transports.file.level = 'silly'
 log.info('app starts 1.0.0')
 //*****************************************Updater********************************************** */
-const server = 'http://localhost:8080'
+var handleStartupEvent = function() {
+  if (process.platform !== 'win32') {
+    return false;
+  }
+
+  var squirrelCommand = process.argv[1];
+  log.info("squirrel args")
+  log.info(squirrelCommand)
+  
+  switch (squirrelCommand) {
+    case '--squirrel-install':
+    case '--squirrel-updated':
+    
+      // Optionally do things such as:
+      //
+      // - Install desktop and start menu shortcuts
+      // - Add your .exe to the PATH
+      // - Write to the registry for things like file associations and
+      //   explorer context menus
+
+      // Always quit when done
+      app.quit();
+
+      return true;
+    case '--squirrel-uninstall':    
+      // Undo anything you did in the --squirrel-install and
+      // --squirrel-updated handlers
+
+      // Always quit when done
+      app.quit();
+
+      return true;
+    case '--squirrel-obsolete':
+      app.quit();
+      return true;
+  }
+};
+
+if (handleStartupEvent()) {
+  return;
+}
+
+
+const server = 'http://localhost:1337'
 const feed = `${server}/update/${process.platform}/${app.getVersion()}`
 
-autoUpdater.setFeedURL(feed)
+//autoUpdater.setFeedURL(feed)
 
 setInterval(() => {
   autoUpdater.checkForUpdates()
@@ -80,6 +125,7 @@ app.on('window-all-closed', function () {
   // On OS X it is common for applications and their menu bar
   // to stay active until the user quits explicitly with Cmd + Q
   if (process.platform !== 'darwin') {
+    log.info("quitting")
     app.quit()
   }
   hid.kill()      

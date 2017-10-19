@@ -1,22 +1,27 @@
 {
-  "name": "ledger-wrapper",
+  "name": "ledgerWrapper",
   "version": "1.0.0",
   "description": "Wrapper for Ledger chrome apps",
   "main": "main.js",
   "scripts": {
     "start": "electron .",
-    "postinstall": "electron-rebuild --force"
+    "postinstall": "electron-rebuild --force",
+    "build:package": "electron-packager . ledgerWrapper --platform=win32 --arch=x64 --out=release/package --asar",
+    "build:winstaller": "node ./buildWin.js",
+    "buildWin": "npm run build:package && npm run build:winstaller"
   },
   "author": "alix mougel",
   "license": "",
   "devDependencies": {
     "electron": "^1.7.6",
-    "electron-rebuild": "^1.6.0"
+    "electron-rebuild": "^1.6.0",
+    "electron-winstaller": "^2.6.3"
   },
   "dependencies": {
     "electron-log": "^2.2.9",
     "electron-packager": "^9.1.0",
     "electron-settings": "^3.1.1",
+    "electron-simple-updater": "^1.2.1",
     "hex-to-array-buffer": "^0.1.0",
     "node-hid": "^0.5.7",
     "usb": "^1.2.0"
