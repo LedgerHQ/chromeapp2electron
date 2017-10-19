@@ -290,7 +290,7 @@ chrome.hid = {
   },
   send: (connectionId, reportId, data, cb) => {
     try {
-      connectionTable[connectionId].write(data) // BUG: if the first byte of a write() is 0x00, you may need to prepend an extra 0x00 due to a bug in hidapi (see issue #187)
+      connectionTable[connectionId].write([0].concat(data)) // BUG: if the first byte of a write() is 0x00, you may need to prepend an extra 0x00 due to a bug in hidapi (see issue #187)
       cb(false);
     } catch(e) {
       console.log("sending error:", e);
