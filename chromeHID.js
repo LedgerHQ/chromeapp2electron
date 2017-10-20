@@ -1,4 +1,6 @@
 var HID = require('node-hid');
+var usbDetect = require('usb-detection');
+
 var devicesTable = {};
 var matchTable = {};
 var connectionTable = {};
@@ -150,6 +152,7 @@ function checkCalls (cb) {
   if (!callQueue) {
     cb()
   } else {
+    //console.log("call queue_________", callQueue)
     setTimeout(function () {
         checkCalls(cb)
       },
@@ -165,10 +168,11 @@ function makeCall(cb) {
   if (!discover) {
     cb()
   } else {
+    //console.log("discover *****************", callQueue)
     setTimeout(function () {
         makeCall(cb)
       },
-      10
+      1
     )
   }
 }
@@ -177,6 +181,7 @@ function checkDevices() {
   checkCalls(
     function () {
       discover = true
+      //console.log("changes detected /////////////////////////////")
       var devices = HID.devices();
       devicesTable2 = {};
       matchTable2 = {};      
@@ -194,14 +199,13 @@ function checkDevices() {
       discover = false
       devicesTable = devicesTable2;
       matchTable = matchTable2;
-      setTimeout(
-        checkDevices
-        , 1)
     }
   )
 }
 
 checkDevices()
+usbDetect.on('change', checkDevices);
+
 
 chrome.hid = {
   getDevices: (options, cb) => {
@@ -244,11 +248,10 @@ chrome.hid = {
     try {
       if (!connectionTable[deviceId]) {
         connectionTable[deviceId] = new HID.HID(matchTable[deviceId].path);
-
       }
       cb(false,{connectionId: deviceId}) 
     } catch(e) {
-      //console.log("error connecting:",e);
+      console.log("error connecting:",e);
       //process.send({lastError: "error connecting:"+e})
       deleteDevice(deviceId);      
       if (cb) {

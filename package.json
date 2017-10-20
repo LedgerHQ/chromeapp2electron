@@ -19,7 +19,8 @@
     "electron-settings": "^3.1.1",
     "hex-to-array-buffer": "^0.1.0",
     "node-hid": "^0.5.7",
-    "usb": "^1.2.0"
+    "usb": "^1.2.0",
+    "usb-detection": "^1.4.0"
   },
   "cmake-js": {
     "runtime": "electron",

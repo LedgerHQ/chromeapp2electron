@@ -25,7 +25,7 @@ ipcRenderer.on('hid-reply', (event, arg) => {
   if (arg.err) {
     setTimeout(() => {
       chrome.runtime.lastError = arg.err;
-      console.log("error in hid response", arg.err)
+      console.log("error in hid response", JSON.stringify(arg.err))
       try {
         cbTable[arg.table][arg.id].apply(this, arg.args);
         if (arg.table === 'once') {
@@ -87,7 +87,7 @@ makeCall = (call, args, listener) => {
       args[buffers[j]] = convertString(args[buffers[j]]);
     }
   }
-  console.log("makecall", call, args, table, thisId)
+  //console.log("makecall", call, args, table, thisId)
   ipcRenderer.send('hid', {
     call: call,
     args: args,
