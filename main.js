@@ -1,95 +1,24 @@
+
+const setupEvents = require('./setup');
+if (setupEvents.handleSquirrelEvent()) {
+  // squirrel event handled and app will exit in 1000ms, so don't do anything else
+  return;
+}
+
 const electron = require('electron')
 const app = electron.app
-const autoUpdater = electron.autoUpdater
-const updater = require('electron-simple-updater');
-updater.init('http://localhost:8080/updates.json');
 const dialog = electron.dialog
 const BrowserWindow = electron.BrowserWindow
 var log = require('electron-log')
 log.transports.file.level = 'silly'
 log.info('app starts 1.0.0')
-//*****************************************Updater********************************************** */
-var handleStartupEvent = function() {
-  if (process.platform !== 'win32') {
-    return false;
-  }
 
-  var squirrelCommand = process.argv[1];
-  log.info("squirrel args")
-  log.info(squirrelCommand)
-  
-  switch (squirrelCommand) {
-    case '--squirrel-install':
-    case '--squirrel-updated':
-    
-      // Optionally do things such as:
-      //
-      // - Install desktop and start menu shortcuts
-      // - Add your .exe to the PATH
-      // - Write to the registry for things like file associations and
-      //   explorer context menus
-
-      // Always quit when done
-      app.quit();
-
-      return true;
-    case '--squirrel-uninstall':    
-      // Undo anything you did in the --squirrel-install and
-      // --squirrel-updated handlers
-
-      // Always quit when done
-      app.quit();
-
-      return true;
-    case '--squirrel-obsolete':
-      app.quit();
-      return true;
-  }
-};
-
-if (handleStartupEvent()) {
-  return;
-}
-
-
-const server = 'http://localhost:1337'
-const feed = `${server}/update/${process.platform}/${app.getVersion()}`
-
-//autoUpdater.setFeedURL(feed)
-
-setInterval(() => {
-  autoUpdater.checkForUpdates()
-}, 6000)
-
-autoUpdater.on('update-downloaded', (event, releaseNotes, releaseName) => {
-  log.info('update downloaded', event, releaseNotes, releaseName)
-  const dialogOpts = {
-    type: 'info',
-    buttons: ['Restart', 'Later'],
-    title: 'Application Update',
-    message: process.platform === 'win32' ? releaseNotes : releaseName,
-    detail: 'A new version has been downloaded. Restart the application to apply the updates.'
-  }
-
-  dialog.showMessageBox(dialogOpts, (response) => {
-    if (response === 0) autoUpdater.quitAndInstall()
-  })
-})
-
-autoUpdater.on('error', message => {
-  log.error('There was a problem updating the application')
-  log.error(message)
-})
-
-//*************************************************************************************************** */
-
-// Keep a global reference of the window object, if you don't, the window will
-// be closed automatically when the JavaScript object is garbage collected.
 global.chrome = {}
 global.mainWindow = {}
-
 global.manifest = require('./chromeApp/manifest.json');
 global.nodeRequire = require;
+
+require('./update');
 require('./chromeApp');
 require('./chromeFileSystem');
 require('./chromeUSB');

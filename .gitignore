@@ -14,5 +14,6 @@ chromeApp
 .directory
 .DS_Store
 ledger-wrapper-*
-release*
+release/win/installer/*
+release/win/package/*
 .npm*

@@ -3,8 +3,8 @@ var electronInstaller = require('electron-winstaller');
 console.log()
 
 resultPromise = electronInstaller.createWindowsInstaller({
-    appDirectory: './release/package/ledgerWrapper-win32-x64',
-    outputDirectory: './release/installer',
+    appDirectory: './release/win/package/ledgerWrapper-win32-x64',
+    outputDirectory: './release/win/installer',
     authors: 'amougel',
     exe: 'ledgerWrapper.exe',
     version: '1.0.0'

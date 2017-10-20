@@ -6,8 +6,8 @@
   "scripts": {
     "start": "electron .",
     "postinstall": "electron-rebuild --force",
-    "build:package": "electron-packager . ledgerWrapper --platform=win32 --arch=x64 --out=release/package --asar",
-    "build:winstaller": "node ./buildWin.js",
+    "build:package": "electron-packager . ledgerWrapper --platform=win32 --arch=x64 --out=release/win/package --asar --overwrite",
+    "build:winstaller": "node ./release/win/buildWin.js",
     "buildWin": "npm run build:package && npm run build:winstaller"
   },
   "author": "alix mougel",
