@@ -15,4 +15,4 @@ chromeApp
 .DS_Store
 ledger-wrapper-*
 release*
-.npmignore
+.npm*

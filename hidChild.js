@@ -47,14 +47,19 @@ try{
       )
       //console.log("parsed arg", message.call, parsedArgs)
     }
-    hidModule.makeCall(
-      function () {
-        if (message.id &&  !(message.call[0] === 'getDevices') && !(message.call[0] === 'onDeviceRemoved')) { 
-          hidModule.incrementQueue()
-        } 
-        call.apply(this,parsedArgs)
-      }
-    ) 
+    if (message.call[0] === 'getDevices' || (message.call[0] === 'onDeviceRemoved')) {
+      call.apply(this, parsedArgs)
+    } else {
+      hidModule.makeCall(
+        function () {
+          if (message.id) { 
+            hidModule.incrementQueue()
+          } 
+          call.apply(this,parsedArgs)
+        }
+      ) 
+    }
+    
   });
   //console.log("child hif launched")  
 } catch(e) {

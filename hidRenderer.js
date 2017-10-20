@@ -22,14 +22,17 @@ convertString = (ab) => {
 
 // Listen for async-reply message from main process
 ipcRenderer.on('hid-reply', (event, arg) => {
-  console.log("hid reply", arg.args, arg.table, arg.id, arg.err);
   if (arg.err) {
     setTimeout(() => {
       chrome.runtime.lastError = arg.err;
+      console.log("error in hid response", JSON.stringify(arg.err))
       try {
         cbTable[arg.table][arg.id].apply(this, arg.args);
+        if (arg.table === 'once') {
+          cbTable[arg.table][arg.id] = undefined;            
+        }
       } catch(e) {
-        console.log("error in hid callback", e, arg)
+        console.log("error in hid callback call", e, arg)
       }
       chrome.runtime.lastError = undefined;        
     }, 0)
@@ -46,13 +49,13 @@ ipcRenderer.on('hid-reply', (event, arg) => {
           cbTable[arg.table][arg.id] = undefined;            
         }
       } catch(e) {
-        console.log("error in hid callback", e, arg)
+        console.log("empty hid callback call", e,arg)
       }
     }, 0)
   }
 });
 
-makeCall = (call, args, listener) => {   
+makeCall = (call, args, listener) => {     
   var buffers = [];
   for (var i=0; i<args.length; ++i) {
     if( args[i] instanceof ArrayBuffer) {
@@ -60,22 +63,22 @@ makeCall = (call, args, listener) => {
     }
   }
   //console.log("call arg", call, args, typeof(args[args.length -1]) === 'function')
-  if (typeof(args[args.length -1]) === 'function') {
+  if (typeof(args[args.length -1]) === 'function' || listener) {
     var table = "once"
     if (listener) {
       table = listener
       while (cbTable[table][++idCb] !== undefined){
       }
-      cbTable[table][idCb] = args[args.length -1]
+      cbTable[table][idCb] = args
       thisId = idCb
-      args = [thisId].concat([args])
+      args = [idCb]
     } else {
       while (cbTable[table][++id] !== undefined){
       }
       thisId = id
       cbTable[table][id] = args[args.length -1]
+      args.pop()      
     }
-    args.pop()
   } else {
     thisId = undefined
   }
@@ -84,7 +87,7 @@ makeCall = (call, args, listener) => {
       args[buffers[j]] = convertString(args[buffers[j]]);
     }
   }
-  console.log("makecall", call, args, table, thisId)
+  //console.log("makecall", call, args, table, thisId)
   ipcRenderer.send('hid', {
     call: call,
     args: args,
@@ -116,12 +119,12 @@ chrome ={
       makeCall(['send'], params)
     },
     onDeviceRemoved: {
-      addListener: (...params) => {
-        makeCall(['onDeviceRemoved', 'addListener'], params, "onRemoved")
+      addListener: (cb) => {
+        makeCall(['onDeviceRemoved', 'addListener'], cb, "onRemoved")
       },
-      removeListener: (...params) => {
+      removeListener: (cbToRemove) => {
         for (cb in cbTable["onRemoved"]) {
-          if ( cbTable["onRemoved"].hasOwnProperty(cb) && cbTable["onRemoved"][cb] === params[0]) {
+          if ( cbTable["onRemoved"].hasOwnProperty(cb) && cbTable["onRemoved"][cb] === cbToRemove) {
             cbTable["onRemoved"][cb] = undefined
             makeCall(['onDeviceRemoved', 'removeListener'], [cb])
           }

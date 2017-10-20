@@ -1,4 +1,6 @@
 var HID = require('node-hid');
+var usbDetect = require('usb-detection');
+
 var devicesTable = {};
 var matchTable = {};
 var connectionTable = {};
@@ -38,17 +40,15 @@ matchFilter = (device) => {
       return 1;
     }
     for (i=0; i < filters.length; ++i) {
+      var localMatch = 1;     
       for ( key in filters[i]) {
-        var localMatch = 0;
         if (filters[i].hasOwnProperty(key)) {
-          if (filters[i][key] === device[key]) {
-            localMatch = 1
-          } else {
+          if (filters[i][key] !== device[key]) {
             localMatch = 0
           }
         }
-        matched += localMatch;
       }
+      matched += localMatch;                
     }
   }
   return matched;
@@ -98,8 +98,8 @@ addDevice = (device, spec) => {
   for (k in matchTable) {
     if (matchTable.hasOwnProperty(k) && matchTable[k] !== undefined) {
       if (matchTable[k].path === device.path) {
-        console.log("device ",k, "alreday exsits")
         set = k
+        //console.log(device)
       }
     }
   }
@@ -126,8 +126,10 @@ deleteDevice = (deviceId) => {
     }
     connectionTable[deviceId] = undefined;
     for (cb in disconnectCbs) {
-      if (disconnectCbs.hasOwnProperty(cb)) {
-        disconnectCbs[cb](false, deviceId);      
+      if (disconnectCbs.hasOwnProperty(cb)) {        
+        if (disconnectCbs[cb] !== undefined) {
+          disconnectCbs[cb](false, deviceId);      
+        }
       }
     }
   } else { console.log("already deleted")}
@@ -147,14 +149,14 @@ function decrementQueue() {
 }
 
 function checkCalls (cb) {
-  console.log("callQueue=", callQueue)
   if (!callQueue) {
-    setTimeout(cb, 0)
+    cb()
   } else {
+    //console.log("call queue_________", callQueue)
     setTimeout(function () {
         checkCalls(cb)
       },
-      50
+      10
     )
   }
 }
@@ -164,39 +166,46 @@ var discover = true;
 var done = true;
 function makeCall(cb) {
   if (!discover) {
-    setTimeout(cb,0)
+    cb()
   } else {
+    //console.log("discover *****************", callQueue)
     setTimeout(function () {
-      discover = false
-      checkCalls(
-        function () {
-          var devices = HID.devices();
-          devicesTable2 = {};
-          matchTable2 = {};
-          for(var i = 0; i+1 <= devices.length; i++) {
-            if (devices[i].interface < 1 && matchFilter(devices[i])){
-              addDevice(devices[i]);
-            }
-          }
-          for (k in devicesTable) {
-            if (devicesTable.hasOwnProperty(k) && !devicesTable2.hasOwnProperty(k)) {
-              console.log("missing device #########################################################################################################################################################")
-              deleteDevice(parseInt(k))
-            }
-          }
-          devicesTable = devicesTable2;
-          matchTable = matchTable2;
-          setTimeout(function () {
-                discover = true;
-              }, 500)
-          setTimeout(function () {
-            cb();
-          },0)   
-        }
-      )
-    },0)
+        makeCall(cb)
+      },
+      1
+    )
   }
 }
+
+function checkDevices() {
+  checkCalls(
+    function () {
+      discover = true
+      //console.log("changes detected /////////////////////////////")
+      var devices = HID.devices();
+      devicesTable2 = {};
+      matchTable2 = {};      
+      for(var i = 0; i+1 <= devices.length; i++) {
+        if (devices[i].interface < 1 && matchFilter(devices[i])){
+          addDevice(devices[i]);
+        }
+      }
+      for (k in devicesTable) {
+        if (devicesTable.hasOwnProperty(k) && !devicesTable2.hasOwnProperty(k)) {
+          console.log("missing device #########################################################################################################################################################")
+          deleteDevice(parseInt(k))
+        }
+      }
+      discover = false
+      devicesTable = devicesTable2;
+      matchTable = matchTable2;
+    }
+  )
+}
+
+checkDevices()
+usbDetect.on('change', checkDevices);
+
 
 chrome.hid = {
   getDevices: (options, cb) => {
@@ -227,9 +236,10 @@ chrome.hid = {
           }
         }
       }
+      //console.log("result get", options, Object.values(result))
       cb(false, Object.values(result))
     } catch(e) {
-      cb(e)
+      cb(e, [])
     }
     
   },
@@ -241,7 +251,7 @@ chrome.hid = {
       }
       cb(false,{connectionId: deviceId}) 
     } catch(e) {
-      //console.log("error connecting:",e);
+      console.log("error connecting:",e);
       //process.send({lastError: "error connecting:"+e})
       deleteDevice(deviceId);      
       if (cb) {
@@ -283,10 +293,10 @@ chrome.hid = {
   },
   send: (connectionId, reportId, data, cb) => {
     try {
-      connectionTable[connectionId].write(data) // BUG: if the first byte of a write() is 0x00, you may need to prepend an extra 0x00 due to a bug in hidapi (see issue #187)
+      connectionTable[connectionId].write([0].concat(data)) // BUG: if the first byte of a write() is 0x00, you may need to prepend an extra 0x00 due to a bug in hidapi (see issue #187)
       cb(false);
     } catch(e) {
-      //console.log("sending error:", e);
+      console.log("sending error:", e);
       deleteDevice(connectionId);
       cb(e);
       
